@@ -1,6 +1,8 @@
 {
+  "verticals": [
+    "com.simpleApplications.audioRecorder.verticles.HttpVertical"
+  ],
   "workerVerticals": [
-    "com.simpleApplications.audioRecorder.verticles.DatabaseVertical",
     "com.simpleApplications.audioRecorder.verticles.RecorderVertical",
     "com.simpleApplications.audioRecorder.verticles.SystemInformationVertical"
   ]
