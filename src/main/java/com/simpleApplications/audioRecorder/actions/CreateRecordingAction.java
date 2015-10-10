@@ -7,7 +7,7 @@ import io.vertx.core.Handler;
 import io.vertx.core.json.JsonObject;
 
 /**
- * Created by nico on 06.10.2015.
+ * @author Nico Moehring
  */
 public class CreateRecordingAction implements Handler<Future<Recording>> {
 
@@ -17,7 +17,6 @@ public class CreateRecordingAction implements Handler<Future<Recording>> {
 
     public CreateRecordingAction(IRecordingDao recordingDao, JsonObject data) {
         this.recordingDao = recordingDao;
-        this.data = data;
     }
 
     @Override

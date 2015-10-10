@@ -1,7 +1,12 @@
 package com.simpleApplications.audioRecorder;
 
+import com.google.inject.Guice;
+import com.google.inject.Injector;
+import com.simpleApplications.audioRecorder.daos.interfaces.IDatabaseUpdater;
 import com.simpleApplications.audioRecorder.exceptions.InitializeException;
+import com.simpleApplications.audioRecorder.guice.GuiceModule;
 import com.simpleApplications.audioRecorder.verticles.HttpVertical;
+import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonArray;
@@ -12,6 +17,7 @@ import io.vertx.core.logging.LoggerFactory;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Scanner;
+import java.util.Set;
 
 /**
  * @author Nico Moehring
@@ -24,6 +30,8 @@ public class Launcher {
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
+    private Injector injector;
+
     public static void main(String args[]) {
         new Launcher().start();
     }
@@ -34,6 +42,8 @@ public class Launcher {
     public void start() {
         try {
             final JsonObject config = this.getConfig();
+            this.injector = Guice.createInjector(new GuiceModule());
+            this.injector.getInstance(IDatabaseUpdater.class).updateDatabaseStructure();
 
             this.startVerticals(config, Launcher.CONFIG_VERTICALS, false);
             this.startVerticals(config, Launcher.CONFIG_WORKER_VERTICALS, true);
@@ -48,17 +58,25 @@ public class Launcher {
      * @param configKey
      * @param worker
      */
-    private void startVerticals(final JsonObject config, final String configKey, final boolean worker) {
+    private void startVerticals(final JsonObject config, final String configKey, final boolean worker) throws InitializeException {
         if (config.containsKey(configKey)) {
-            final JsonArray workerVerticals = config.getJsonArray(configKey);
+            final JsonArray verticals = config.getJsonArray(configKey);
 
-            for (int i = 0; i < workerVerticals.size(); i++) {
+            for (int i = 0; i < verticals.size(); i++) {
                 final DeploymentOptions options = new DeploymentOptions().setWorker(worker);
                 options.setConfig(config);
 
-                this.logger.info("Starting vertical: " + workerVerticals.getString(i));
-                Vertx.vertx().deployVerticle(workerVerticals.getString(i), options);
+                try {
+                    this.logger.info("Starting vertical: " + verticals.getString(i));
+                    Class<AbstractVerticle> verticleClass = (Class<AbstractVerticle>) Class.forName(verticals.getString(i));
+
+                    Vertx.vertx().deployVerticle(this.injector.getInstance(verticleClass), options);
+                } catch (ClassNotFoundException e) {
+                    throw new InitializeException("The vertical " + verticals.getString(i) + " could not be found: " + e.getMessage());
+                }
             }
+        } else {
+            this.logger.warn("Could not find vertical list with the name: " + configKey);
         }
     }
 

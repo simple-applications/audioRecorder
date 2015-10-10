@@ -1,20 +1,25 @@
-package com.simpleApplications.audioRecorder.verticles;
+ package com.simpleApplications.audioRecorder.verticles;
 
+import com.google.inject.Inject;
+import com.simpleApplications.audioRecorder.actions.DatabaseActionFactory;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.DeploymentOptions;
-import io.vertx.core.json.JsonArray;
+import io.vertx.core.http.HttpServer;
+import io.vertx.core.http.HttpServerResponse;
 
-/**
+ /**
  * @author Nico Moehring
  */
 public class HttpVertical extends AbstractVerticle {
 
-    @Override
-    public void start() throws Exception {
-        this.startHttpServer();
+    protected DatabaseActionFactory actionFactory;
+
+    @Inject
+    public HttpVertical(DatabaseActionFactory actionFactory) {
+        this.actionFactory = actionFactory;
     }
 
-    private void startHttpServer() {
+    @Override
+    public void start() throws Exception {
 
     }
 }

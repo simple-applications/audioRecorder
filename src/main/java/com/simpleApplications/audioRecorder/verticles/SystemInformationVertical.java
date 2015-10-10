@@ -14,6 +14,8 @@ import java.lang.management.ManagementFactory;
  */
 public class SystemInformationVertical extends AbstractVerticle {
 
+    private final static int INTERVAL = 500;
+
     private OperatingSystemMXBean systemMXBean;
 
     private EventBus eventBus;
@@ -25,7 +27,7 @@ public class SystemInformationVertical extends AbstractVerticle {
         this.eventBus = this.vertx.eventBus();
         this.eventBus.registerDefaultCodec(SystemInformation.class, new SystemInformationCodec());
 
-        this.vertx.setPeriodic(500, this::collectSystemInformation);
+        this.vertx.setPeriodic(SystemInformationVertical.INTERVAL, this::collectSystemInformation);
     }
 
     /**
