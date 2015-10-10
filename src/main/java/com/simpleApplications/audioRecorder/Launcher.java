@@ -5,6 +5,7 @@ import com.google.inject.Injector;
 import com.simpleApplications.audioRecorder.daos.interfaces.IDatabaseUpdater;
 import com.simpleApplications.audioRecorder.exceptions.InitializeException;
 import com.simpleApplications.audioRecorder.guice.GuiceModule;
+import com.simpleApplications.audioRecorder.utils.ResourceReader;
 import com.simpleApplications.audioRecorder.verticles.HttpVertical;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.DeploymentOptions;
@@ -16,13 +17,14 @@ import io.vertx.core.logging.LoggerFactory;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.Scanner;
 import java.util.Set;
 
 /**
  * @author Nico Moehring
  */
-public class Launcher {
+public class Launcher implements ResourceReader {
 
     private static final String CONFIG_VERTICALS = "verticals";
 
@@ -87,14 +89,13 @@ public class Launcher {
      */
     private JsonObject getConfig() throws InitializeException {
         try {
-            final ClassLoader classLoader = this.getClass().getClassLoader();
-            final File configFile = new File(classLoader.getResource("config/config.json").getFile());
-
-            return new JsonObject(new Scanner(configFile).useDelimiter("\\A").next());
+            return new JsonObject(
+                    new Scanner(
+                            this.getResourceAsStream("config/config.json")
+                    ).useDelimiter("\\A").next()
+            );
         } catch (NullPointerException e) {
             throw new InitializeException("Config file could not be found!");
-        } catch (FileNotFoundException e) {
-            throw new InitializeException("Could not read the config file due to: " + e.getMessage());
         }
     }
 }
