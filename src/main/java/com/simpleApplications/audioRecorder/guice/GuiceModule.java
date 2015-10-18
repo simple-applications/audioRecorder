@@ -10,6 +10,7 @@ import com.simpleApplications.audioRecorder.daos.interfaces.IDatabaseUpdater;
 import com.simpleApplications.audioRecorder.daos.interfaces.IRecordingDao;
 import com.simpleApplications.audioRecorder.daos.interfaces.IRecordingProjectDao;
 import com.simpleApplications.audioRecorder.handlers.IndexHandler;
+import com.simpleApplications.audioRecorder.handlers.StaticHandler;
 import com.simpleApplications.audioRecorder.handlers.interfaces.IRequestHandler;
 import org.skife.jdbi.v2.DBI;
 
@@ -34,6 +35,7 @@ public class GuiceModule extends AbstractModule {
 
             Multibinder<IRequestHandler> requestHandlers = Multibinder.newSetBinder(binder(), IRequestHandler.class);
             requestHandlers.addBinding().to(IndexHandler.class);
+            requestHandlers.addBinding().to(StaticHandler.class);
         } catch (SQLException | PropertyVetoException e) {
             e.printStackTrace();
         }

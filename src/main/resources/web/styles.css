@@ -1,0 +1,163 @@
+html, body {
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+
+    font-family: robotolight;
+
+    background-color: #ecf0f1;
+    color: #34495e;
+}
+
+div.center {
+    width: 960px;
+    margin: 0 auto;
+    display: none;
+}
+
+div.center.active {
+    display: block;
+}
+
+.primaryColor {
+    color: #3498db;
+}
+
+.successColor {
+    color: #2ecc71;
+}
+
+.failedColor {
+    color: #e74c3c;
+}
+
+.button {
+    background: none;
+    border: none;
+    cursor: pointer;
+    outline: none;
+
+    transition: transform 200ms, opacity 200ms;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.button:active {
+    outline: none;
+    transform: scale(0.95);
+    opacity: 0.75;
+}
+
+.inactive {
+    display: none;
+}
+
+#backButton {
+    font-size: 30px;
+    padding: 10px;
+    display: none;
+    position: absolute;
+    left: 0;
+    top: 0;
+}
+
+#backButton.active {
+    display: block;
+}
+
+#projectSelection {
+    display: block;
+}
+
+#projectSelection .listEntry {
+    font-size: 30px;
+
+    border-bottom: solid 1px #95a5a6;
+}
+
+#projectSelection .listEntry .projectName {
+    display: inline-block;
+    width: 810px;
+}
+
+#projectSelection .listEntry .controlWrapper {
+    display: inline-block;
+}
+
+#projectSelection .listEntry .controlWrapper button {
+    font-size: 25px;
+    margin-right: 20px;
+    padding: 10px;
+}
+
+#projectSelection #newProjectButton {
+    background-color: #2ecc71;
+    color: #ecf0f1;
+    font-size: 20px;
+    padding: 15px;
+    width: 200px;
+    margin: 30px auto;
+    display: block;
+}
+
+#projectSelection #newProjectButton span {
+    margin-right: 10px;
+}
+
+#recordingPanel #recordButton {
+    font-size: 210px;
+    display: block;
+    /*width: 175px;*/
+    margin: 0 auto;
+}
+
+body.recordingActive #backButton,
+body.recordingActive #recordingPanel #recordButton {
+    display: none;
+}
+
+#recordingPanel #recordingTimeLabel,
+#recordingPanel #saveRecordingButton,
+#recordingPanel #cancelRecordingButton {
+    display: none;
+}
+
+body.recordingActive #recordingPanel #recordingTimeLabel {
+    display: block;
+}
+
+body.recordingActive #recordingPanel #saveRecordingButton,
+body.recordingActive #recordingPanel #cancelRecordingButton {
+    display: inline-block;
+}
+
+#recordingPanel h1 {
+    text-align: center;
+    font-weight: normal;
+    font-size: 50px;
+    margin: 0;
+    padding-top: 34px;
+}
+
+#recordingPanel #recordingTimeLabel {
+    text-align: center;
+    font-family: robotobold;
+    font-size: 180px;
+    letter-spacing: 8px;
+}
+
+#recordingPanel .buttonWrapper {
+    width: 520px;
+    margin: 0 auto;
+}
+
+#recordingPanel #saveRecordingButton,
+#recordingPanel #cancelRecordingButton {
+    font-size: 90px;
+    padding: 20px;
+}
+
+#recordingPanel #saveRecordingButton {
+    margin-right: 130px;
+    margin-left: 60px;
+}

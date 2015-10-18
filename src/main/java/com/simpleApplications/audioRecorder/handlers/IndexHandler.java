@@ -2,39 +2,37 @@ package com.simpleApplications.audioRecorder.handlers;
 
 import com.simpleApplications.audioRecorder.handlers.interfaces.IRequestHandler;
 import com.simpleApplications.audioRecorder.utils.ResourceReader;
-import io.vertx.core.Handler;
-import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerResponse;
 import io.vertx.ext.web.RoutingContext;
 
-import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
 
 /**
  * Created by nico on 10.10.2015.
  */
 public class IndexHandler implements IRequestHandler, ResourceReader {
 
+    protected final static String CSS_PLACEHOLDER = "###CSS_CONTENT###";
+
     protected final String indexPageContent;
 
     public IndexHandler() {
-        final InputStream fileStream = this.getResourceAsStream("web/index.html");
-        final StringBuilder builder = new StringBuilder();
+        StringBuilder indexContentBuilder = new StringBuilder();
 
         try {
-            int ch;
+            indexContentBuilder.append(this.getFileContentAsString("web/index.html"));
+            final StringBuilder fontsContentBuilder = new StringBuilder(this.getFileContentAsString("web/fonts.css"));
+            final int cssStart = indexContentBuilder.indexOf(IndexHandler.CSS_PLACEHOLDER);
 
-            while((ch = fileStream.read()) != -1){
-                builder.append((char)ch);
-            }
+            fontsContentBuilder.append(this.getFileContentAsString("web/styles.css"));
+
+            indexContentBuilder.delete(cssStart, cssStart + IndexHandler.CSS_PLACEHOLDER.length());
+            indexContentBuilder.insert(cssStart, fontsContentBuilder);
         } catch (IOException e) {
             e.printStackTrace();
         }
 
-        this.indexPageContent = builder.toString();
-        System.out.println("Test");
+        this.indexPageContent = indexContentBuilder.toString();
     }
 
     @Override

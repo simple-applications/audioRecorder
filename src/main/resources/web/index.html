@@ -1,10 +1,84 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title></title>
-</head>
-<body>
 
+<!--
+  Copyright (c) 2015, <your name>. All rights reserved. Use of this source code
+  is governed by a BSD-style license that can be found in the LICENSE file.
+-->
+
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Rekorder</title>
+    <style type="text/css">
+        ###CSS_CONTENT###
+    </style>
+</head>
+
+<body class="">
+<button id="backButton" class="button"><span class="flaticon-back57"></span></button>
+
+<div id="projectSelection" class="center">
+    <div id="projectList">
+        <div class="listEntry">
+            <p class="projectName">TestProjekt1</p>
+
+            <div class="controlWrapper">
+                <button class="button">
+                    <span class="flaticon-voice32 primaryColor"></span>
+                </button>
+
+                <button class="button">
+                    <span class="flaticon-rubbish failedColor"></span>
+                </button>
+            </div>
+        </div>
+
+        <div class="listEntry">
+            <p class="projectName">TestProjekt2</p>
+
+            <div class="controlWrapper">
+                <button class="button">
+                    <span class="flaticon-voice32 primaryColor"></span>
+                </button>
+
+                <button class="button">
+                    <span class="flaticon-rubbish failedColor"></span>
+                </button>
+            </div>
+        </div>
+
+        <div class="listEntry">
+            <p class="projectName">TestProjekt3</p>
+
+            <div class="controlWrapper">
+                <button class="button">
+                    <span class="flaticon-voice32 primaryColor"></span>
+                </button>
+
+                <button class="button">
+                    <span class="flaticon-rubbish failedColor"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <button id="newProjectButton" class="button"><span class="flaticon-add186"></span>Neues Projekt</button>
+</div>
+
+<div id="recordingPanel" class="center">
+    <h1>TestProjekt1</h1>
+    <button id="recordButton" class="button"><span class="flaticon-voice32 primaryColor"></span></button>
+
+        <span id="recordingTimeLabel">
+            00:00
+        </span>
+
+    <div class="buttonWrapper">
+        <button id="saveRecordingButton" class="button"><span class="flaticon-check52 successColor"></span></button>
+        <button id="cancelRecordingButton" class="button"><span class="flaticon-close47 failedColor"></span> </button>
+    </div>
+</div>
 </body>
 </html>
