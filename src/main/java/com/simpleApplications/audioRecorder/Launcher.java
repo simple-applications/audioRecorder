@@ -15,7 +15,11 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.util.Scanner;
+import java.util.Set;
 
 /**
  * @author Nico Moehring
@@ -30,6 +34,8 @@ public class Launcher implements ResourceReader {
 
     private Injector injector;
 
+    private Vertx vertx;
+
     public static void main(String args[]) {
         new Launcher().start();
     }
@@ -39,6 +45,8 @@ public class Launcher implements ResourceReader {
      */
     public void start() {
         try {
+            this.vertx = Vertx.vertx();
+
             final JsonObject config = this.getConfig();
             this.injector = Guice.createInjector(new GuiceModule());
             this.injector.getInstance(IDatabaseUpdater.class).updateDatabaseStructure();
@@ -68,7 +76,7 @@ public class Launcher implements ResourceReader {
                     this.logger.info("Starting vertical: " + verticals.getString(i));
                     Class<AbstractVerticle> verticleClass = (Class<AbstractVerticle>) Class.forName(verticals.getString(i));
 
-                    Vertx.vertx().deployVerticle(this.injector.getInstance(verticleClass), options);
+                    this.vertx.deployVerticle(this.injector.getInstance(verticleClass), options);
                 } catch (ClassNotFoundException e) {
                     throw new InitializeException("The vertical " + verticals.getString(i) + " could not be found: " + e.getMessage());
                 }
