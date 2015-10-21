@@ -3,6 +3,7 @@ package com.simpleApplications.audioRecorder.handlers;
 import com.google.inject.Inject;
 import com.simpleApplications.audioRecorder.daos.interfaces.IRecordingProjectDao;
 import com.simpleApplications.audioRecorder.model.RecordingProject;
+import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonArray;
@@ -46,11 +47,11 @@ public class RecordingProjectHandler extends AbstractRequestHandler {
     }
 
     protected void getRecordingProjects(RoutingContext routingContext) {
-        Vertx.currentContext().executeBlocking(objectFuture -> {
+        Vertx.currentContext().executeBlocking((Future<List<RecordingProject>> objectFuture) -> {
             objectFuture.complete(this.recordingProjectDao.getAll());
         }, result -> {
             if (result.succeeded()) {
-                List<RecordingProject> recordingProjectList = (List<RecordingProject>) result.result();
+                List<RecordingProject> recordingProjectList = result.result();
                 JsonArray jsonResult = new JsonArray();
 
                 for (RecordingProject tmpProject : recordingProjectList) {
