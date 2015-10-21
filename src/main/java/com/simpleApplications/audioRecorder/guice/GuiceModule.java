@@ -10,6 +10,8 @@ import com.simpleApplications.audioRecorder.daos.interfaces.IDatabaseUpdater;
 import com.simpleApplications.audioRecorder.daos.interfaces.IRecordingDao;
 import com.simpleApplications.audioRecorder.daos.interfaces.IRecordingProjectDao;
 import com.simpleApplications.audioRecorder.handlers.IndexHandler;
+import com.simpleApplications.audioRecorder.handlers.RecordingHandler;
+import com.simpleApplications.audioRecorder.handlers.RecordingProjectHandler;
 import com.simpleApplications.audioRecorder.handlers.StaticHandler;
 import com.simpleApplications.audioRecorder.handlers.interfaces.IRequestHandler;
 import org.skife.jdbi.v2.DBI;
@@ -18,7 +20,7 @@ import java.beans.PropertyVetoException;
 import java.sql.SQLException;
 
 /**
- * Created by nico on 07.10.2015.
+ * @author Nico Moehring
  */
 public class GuiceModule extends AbstractModule {
     @Override
@@ -34,8 +36,10 @@ public class GuiceModule extends AbstractModule {
             this.bind(IRecordingProjectDao.class).toInstance(dbi.onDemand(IRecordingProjectDao.class));
 
             Multibinder<IRequestHandler> requestHandlers = Multibinder.newSetBinder(binder(), IRequestHandler.class);
-            requestHandlers.addBinding().to(IndexHandler.class);
             requestHandlers.addBinding().to(StaticHandler.class);
+            requestHandlers.addBinding().to(IndexHandler.class);
+            requestHandlers.addBinding().to(RecordingHandler.class);
+            requestHandlers.addBinding().to(RecordingProjectHandler.class);
         } catch (SQLException | PropertyVetoException e) {
             e.printStackTrace();
         }

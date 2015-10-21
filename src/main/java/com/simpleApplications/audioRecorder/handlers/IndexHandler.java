@@ -8,7 +8,7 @@ import io.vertx.ext.web.RoutingContext;
 import java.io.IOException;
 
 /**
- * Created by nico on 10.10.2015.
+ * @author Nico Moehring
  */
 public class IndexHandler implements IRequestHandler, ResourceReader {
 
