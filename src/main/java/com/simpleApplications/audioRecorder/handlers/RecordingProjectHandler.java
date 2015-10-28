@@ -2,25 +2,32 @@ package com.simpleApplications.audioRecorder.handlers;
 
 import com.google.inject.Inject;
 import com.simpleApplications.audioRecorder.daos.interfaces.IRecordingProjectDao;
+import com.simpleApplications.audioRecorder.exceptions.ValidationException;
 import com.simpleApplications.audioRecorder.model.RecordingProject;
 import io.vertx.core.Future;
 import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
+import io.vertx.core.http.HttpServerRequest;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
+import javax.validation.ConstraintViolation;
+import javax.validation.Validator;
 import java.util.List;
+import java.util.Set;
 
 /**
  * @author Nico Moehring
  */
-public class RecordingProjectHandler extends AbstractRequestHandler {
+public class RecordingProjectHandler extends AbstractRequestHandler<RecordingProject> {
 
     protected IRecordingProjectDao recordingProjectDao;
 
     @Inject
-    public RecordingProjectHandler(IRecordingProjectDao recordingProjectDao) {
+    public RecordingProjectHandler(IRecordingProjectDao recordingProjectDao, Validator validator) {
+        super(validator);
+
         this.recordingProjectDao = recordingProjectDao;
 
         this.handledMethods.put(HttpMethod.GET, this::getRecordingProjects);
@@ -42,8 +49,17 @@ public class RecordingProjectHandler extends AbstractRequestHandler {
 
     }
 
-    protected void createRecordingProject(RoutingContext routingContext) {
+    protected void createRecordingProject(RoutingContext routingContext) throws ValidationException {
+        final RecordingProject recordingProject = new RecordingProject();
+        recordingProject.bindJson(this.getJsonData(routingContext.request()));
 
+        final Set<ConstraintViolation<RecordingProject>> constraintViolations = this.validator.validate(recordingProject);
+
+        if (constraintViolations.isEmpty()) {
+
+        } else {
+            this.generateValidationException(constraintViolations);
+        }
     }
 
     protected void getRecordingProjects(RoutingContext routingContext) {
@@ -61,5 +77,15 @@ public class RecordingProjectHandler extends AbstractRequestHandler {
                 routingContext.response().end(jsonResult.encode());
             }
         });
+    }
+
+    protected JsonObject getJsonData(HttpServerRequest request) {
+        final String jsonData = request.getParam("data");
+
+        if (null != jsonData && !jsonData.isEmpty()) {
+            return new JsonObject(jsonData);
+        } else {
+            return null;
+        }
     }
 }

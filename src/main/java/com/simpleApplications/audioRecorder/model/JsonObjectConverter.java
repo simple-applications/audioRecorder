@@ -21,4 +21,13 @@ public interface JsonObjectConverter {
 
         return result;
     }
+
+    default void bindJson(JsonObject jsonData) {
+        jsonData.forEach(stringObjectEntry -> {
+            try {
+                final Field tmpField = this.getClass().getField(stringObjectEntry.getKey());
+                tmpField.set(this, stringObjectEntry.getValue());
+            } catch (NoSuchFieldException | IllegalAccessException e) { }
+        });
+    }
 }
