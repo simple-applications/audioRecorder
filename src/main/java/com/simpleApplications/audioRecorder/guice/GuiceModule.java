@@ -38,9 +38,6 @@ public class GuiceModule extends AbstractModule {
             this.bind(IRecordingDao.class).toInstance(dbi.onDemand(IRecordingDao.class));
             this.bind(IRecordingProjectDao.class).toInstance(dbi.onDemand(IRecordingProjectDao.class));
 
-            Validator validator = Validation.buildDefaultValidatorFactory().getValidator();
-            this.bind(Validator.class).toInstance(validator);
-
             Multibinder<IRequestHandler> requestHandlers = Multibinder.newSetBinder(binder(), IRequestHandler.class);
             requestHandlers.addBinding().to(StaticHandler.class);
             requestHandlers.addBinding().to(IndexHandler.class);

@@ -2,20 +2,20 @@ package com.simpleApplications.audioRecorder.handlers;
 
 import com.google.inject.Inject;
 import com.simpleApplications.audioRecorder.daos.interfaces.IRecordingProjectDao;
+import com.simpleApplications.audioRecorder.exceptions.EntityNotFoundException;
+import com.simpleApplications.audioRecorder.exceptions.NoDataGivenException;
 import com.simpleApplications.audioRecorder.exceptions.ValidationException;
 import com.simpleApplications.audioRecorder.model.RecordingProject;
 import io.vertx.core.Future;
+import io.vertx.core.Handler;
 import io.vertx.core.Vertx;
+import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpMethod;
-import io.vertx.core.http.HttpServerRequest;
-import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.RoutingContext;
 
-import javax.validation.ConstraintViolation;
 import javax.validation.Validator;
 import java.util.List;
-import java.util.Set;
 
 /**
  * @author Nico Moehring
@@ -31,35 +31,74 @@ public class RecordingProjectHandler extends AbstractRequestHandler<RecordingPro
         this.recordingProjectDao = recordingProjectDao;
 
         this.handledMethods.put(HttpMethod.GET, this::getRecordingProjects);
-        this.handledMethods.put(HttpMethod.PUT, this::createRecordingProject);
-        this.handledMethods.put(HttpMethod.POST, this::saveRecordingProject);
+        this.handledMethods.put(HttpMethod.PUT, this::saveRecordingProject);
+        this.handledMethods.put(HttpMethod.POST, this::createRecordingProject);
         this.handledMethods.put(HttpMethod.DELETE, this::deleteRecordingProject);
-    }
 
-    @Override
-    public String getRoute() {
-        return "/recordingProjects";
+        this.routes.add("/recordingProjects");
+        this.routes.add("/recordingProjects/:projectId");
     }
 
     protected void deleteRecordingProject(RoutingContext routingContext) {
 
     }
 
-    protected void saveRecordingProject(RoutingContext routingContext) {
+    protected void saveRecordingProject(RoutingContext routingContext) throws NoDataGivenException, EntityNotFoundException {
+        try {
+            int projectId = Integer.valueOf(routingContext.request().getParam("projectId"));
+            RecordingProject requestData = this.getEntityFromRequest(routingContext);
 
+            this.handleObjectRequest(routingContext, (Future<RecordingProject> objectFuture) -> {
+                try {
+                    RecordingProject recordingProject = this.recordingProjectDao.getById(projectId);
+
+                    if (recordingProject == null) {
+                        throw new EntityNotFoundException("No recording project found with ID " + projectId);
+                    }
+
+                    recordingProject.bindJson(requestData.toJson());
+                    this.validateEntity(recordingProject);
+
+                    this.recordingProjectDao.update(recordingProject);
+                    objectFuture.complete(recordingProject);
+                } catch (ValidationException | EntityNotFoundException e) {
+                    objectFuture.fail(e);
+                }
+            });
+        } catch (NumberFormatException e) {
+            throw new EntityNotFoundException("No recording project found with ID " + routingContext.request().getParam("projectId"));
+        }
     }
 
-    protected void createRecordingProject(RoutingContext routingContext) throws ValidationException {
-        final RecordingProject recordingProject = new RecordingProject();
-        recordingProject.bindJson(this.getJsonData(routingContext.request()));
+    protected void createRecordingProject(RoutingContext routingContext) throws NoDataGivenException {
+        final RecordingProject recordingProject = this.getEntityFromRequest(routingContext);
 
-        final Set<ConstraintViolation<RecordingProject>> constraintViolations = this.validator.validate(recordingProject);
+        this.handleObjectRequest(routingContext, (Future<RecordingProject> objectFuture) -> {
+            try {
+                this.validateEntity(recordingProject);
 
-        if (constraintViolations.isEmpty()) {
+                recordingProject.setId(this.recordingProjectDao.create(recordingProject));
+                objectFuture.complete(recordingProject);
+            } catch (ValidationException e) {
+                objectFuture.fail(e);
+            }
+        });
+    }
 
-        } else {
-            this.generateValidationException(constraintViolations);
-        }
+    protected void handleObjectRequest(RoutingContext routingContext, Handler<Future<RecordingProject>> handler) throws NoDataGivenException {
+        Vertx.currentContext().executeBlocking(handler, result -> {
+            if (result.succeeded()) {
+                this.sendEntityResponse(routingContext, result.result());
+            } else if (result.failed()) {
+                Throwable error = result.cause();
+
+                if (error instanceof ValidationException) {
+                    this.handleValidationErrors(routingContext, (ValidationException) result.cause());
+                } else if (error instanceof EntityNotFoundException) {
+                    this.handleEntityNotFoundException(routingContext);
+                }
+            }
+        });
     }
 
     protected void getRecordingProjects(RoutingContext routingContext) {
@@ -67,25 +106,10 @@ public class RecordingProjectHandler extends AbstractRequestHandler<RecordingPro
             objectFuture.complete(this.recordingProjectDao.getAll());
         }, result -> {
             if (result.succeeded()) {
-                List<RecordingProject> recordingProjectList = result.result();
-                JsonArray jsonResult = new JsonArray();
-
-                for (RecordingProject tmpProject : recordingProjectList) {
-                    jsonResult.add(tmpProject.toJson());
-                }
-
-                routingContext.response().end(jsonResult.encode());
+                routingContext.response().end(
+                        this.generateJsonArray(result.result()).toString()
+                );
             }
         });
-    }
-
-    protected JsonObject getJsonData(HttpServerRequest request) {
-        final String jsonData = request.getParam("data");
-
-        if (null != jsonData && !jsonData.isEmpty()) {
-            return new JsonObject(jsonData);
-        } else {
-            return null;
-        }
     }
 }

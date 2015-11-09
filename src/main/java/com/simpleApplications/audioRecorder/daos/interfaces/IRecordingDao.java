@@ -16,14 +16,14 @@ import java.util.List;
 public interface IRecordingDao {
     @SqlQuery("SELECT * FROM recordings WHERE projectId = :projectId")
     @Mapper(RecordingMapper.class)
-    public List<Recording> getByProjectId(@Bind("projectId") int projectId);
+    List<Recording> getByProjectId(@Bind("projectId") int projectId);
 
     @SqlUpdate("INSERT INTO recordings(createdAt, fileName, length, size, converted, projectId) VALUES (:createdAt, :fileName, :length, :size, :converted, :projectId)")
-    public int create(@BindBean Recording recording);
+    int create(@BindBean Recording recording);
 
     @SqlUpdate("UPDATE recordings SET createdAt = :createdAt, fileName = :fileName, length = :length, size = :size, converted = :converted, projectId = :projectId WHERE id = :id")
-    public void update(@BindBean Recording recording);
+    void update(@BindBean Recording recording);
 
     @SqlUpdate("DELETE FROM recordings WHERE id = :recordingId")
-    public void delete(@BindBean Recording recording);
+    void delete(@BindBean Recording recording);
 }

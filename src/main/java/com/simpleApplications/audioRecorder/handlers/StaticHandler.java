@@ -1,6 +1,5 @@
 package com.simpleApplications.audioRecorder.handlers;
 
-import com.simpleApplications.audioRecorder.handlers.interfaces.IRequestHandler;
 import com.simpleApplications.audioRecorder.utils.ResourceReader;
 import io.vertx.core.buffer.Buffer;
 import io.vertx.core.http.HttpServerResponse;
@@ -11,7 +10,12 @@ import java.io.IOException;
 /**
  * @author Nico Moehring
  */
-public class StaticHandler implements IRequestHandler, ResourceReader {
+public class StaticHandler extends AbstractRouteHandler implements ResourceReader {
+
+    public StaticHandler() {
+        this.routes.add("/static/*");
+    }
+
     @Override
     public void handle(RoutingContext routingContext) {
         HttpServerResponse response = routingContext.response();
@@ -24,11 +28,6 @@ public class StaticHandler implements IRequestHandler, ResourceReader {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    @Override
-    public String getRoute() {
-        return "/static/*";
     }
 
     protected String getHeaderContentType(final String file) {

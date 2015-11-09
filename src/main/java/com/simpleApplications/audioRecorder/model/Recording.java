@@ -9,7 +9,7 @@ import javax.validation.constraints.Size;
 /**
  * @author Nico Moehring
  */
-public class Recording {
+public class Recording implements JsonObjectConverter {
 
     public int id;
 

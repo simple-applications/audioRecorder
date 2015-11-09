@@ -10,7 +10,7 @@ import java.io.IOException;
 /**
  * @author Nico Moehring
  */
-public class IndexHandler implements IRequestHandler, ResourceReader {
+public class IndexHandler extends AbstractRouteHandler implements ResourceReader {
 
     protected final static String CSS_PLACEHOLDER = "###CSS_CONTENT###";
 
@@ -41,10 +41,5 @@ public class IndexHandler implements IRequestHandler, ResourceReader {
         response.putHeader("content-type", "text/html");
 
         response.end(this.indexPageContent);
-    }
-
-    @Override
-    public String getRoute() {
-        return "/";
     }
 }

@@ -14,9 +14,9 @@ public class RecordingProjectMapper implements ResultSetMapper<RecordingProject>
     @Override
     public RecordingProject map(int i, ResultSet resultSet, StatementContext statementContext) throws SQLException {
         RecordingProject recordingProject = new RecordingProject();
-        recordingProject.id = resultSet.getInt("id");
-        recordingProject.name = resultSet.getString("name");
-        recordingProject.referenceAudioFileName = resultSet.getString("referenceAudioFileName");
+        recordingProject.setId(resultSet.getInt("id"));
+        recordingProject.setName(resultSet.getString("name"));
+        recordingProject.setReferenceFileId(resultSet.getInt("referenceFileId"));
 
         return recordingProject;
     }

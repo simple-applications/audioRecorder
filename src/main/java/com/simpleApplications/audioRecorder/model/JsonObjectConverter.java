@@ -3,6 +3,9 @@ package com.simpleApplications.audioRecorder.model;
 import io.vertx.core.json.JsonObject;
 
 import java.lang.reflect.Field;
+import java.lang.reflect.InvocationTargetException;
+import java.lang.reflect.Method;
+import java.util.Arrays;
 
 /**
  * @author Nico Moehring
@@ -23,11 +26,20 @@ public interface JsonObjectConverter {
     }
 
     default void bindJson(JsonObject jsonData) {
-        jsonData.forEach(stringObjectEntry -> {
-            try {
-                final Field tmpField = this.getClass().getField(stringObjectEntry.getKey());
-                tmpField.set(this, stringObjectEntry.getValue());
-            } catch (NoSuchFieldException | IllegalAccessException e) { }
-        });
+        Arrays.stream(this.getClass().getMethods())
+                .filter(method -> method.getName().startsWith("set"))
+                .forEach(method -> {
+                    String attribute = method.getName().substring(3).toLowerCase();
+
+                    try {
+                        Object attributeValue = jsonData.getValue(attribute);
+
+                        if (attributeValue != null) {
+                            method.invoke(this, attributeValue);
+                        }
+                    } catch (IllegalAccessException | InvocationTargetException e) {
+                        e.printStackTrace();
+                    }
+                });
     }
 }
