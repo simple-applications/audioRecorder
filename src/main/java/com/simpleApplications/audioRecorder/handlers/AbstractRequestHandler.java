@@ -2,6 +2,7 @@ package com.simpleApplications.audioRecorder.handlers;
 
 import com.google.inject.Inject;
 import com.simpleApplications.audioRecorder.exceptions.EntityNotFoundException;
+import com.simpleApplications.audioRecorder.exceptions.HttpException;
 import com.simpleApplications.audioRecorder.exceptions.NoDataGivenException;
 import com.simpleApplications.audioRecorder.exceptions.ValidationException;
 import com.simpleApplications.audioRecorder.handlers.interfaces.IRequestHandler;
@@ -42,14 +43,19 @@ public abstract class AbstractRequestHandler<T extends JsonObjectConverter> exte
         if (this.handledMethods.containsKey(requestMethod)) {
             try {
                 this.handledMethods.get(requestMethod).accept(routingContext);
-            } catch (NoDataGivenException e) {
-                this.handleNoDataGivenException(routingContext);
-            } catch (EntityNotFoundException e) {
-                this.handleEntityNotFoundException(routingContext);
+            } catch (HttpException e) {
+                this.handleHttpException(routingContext, e);
             }
         } else {
             routingContext.fail(405);
         }
+    }
+
+    protected void handleHttpException(RoutingContext routingContext, HttpException e) {
+        routingContext
+                .response()
+                .setStatusCode(e.getStatusCode())
+                .end(e.getResponse());
     }
 
     protected T getEntityFromRequest(RoutingContext routingContext) throws NoDataGivenException {
@@ -89,44 +95,6 @@ public abstract class AbstractRequestHandler<T extends JsonObjectConverter> exte
         });
 
         throw new ValidationException(validationErrors);
-    }
-
-    protected void handleValidationErrors(RoutingContext routingContext, ValidationException validationException) {
-        final JsonObject result = new JsonObject();
-        final JsonObject errors = new JsonObject();
-
-        validationException.getValidationErrors().forEach(validationError -> {
-            JsonArray errorArray = errors.getJsonArray(validationError.getKey());
-
-            if (errorArray == null) {
-                errorArray = new JsonArray();
-            }
-
-            errorArray.add(validationError.getValue());
-
-            errors.put(validationError.getKey(), errorArray);
-        });
-
-        result.put("errors", errors);
-
-        routingContext
-                .response()
-                .setStatusCode(422)
-                .end(result.encode());
-    }
-
-    protected void handleNoDataGivenException(RoutingContext routingContext) {
-        routingContext
-                .response()
-                .setStatusCode(400)
-                .end();
-    }
-
-    protected void handleEntityNotFoundException(RoutingContext routingContext) {
-        routingContext
-                .response()
-                .setStatusCode(404)
-                .end();
     }
 
     protected void sendEntityResponse(RoutingContext routingContext, T entity) {

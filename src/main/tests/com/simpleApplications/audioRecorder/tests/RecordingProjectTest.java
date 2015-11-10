@@ -1,6 +1,7 @@
 package com.simpleApplications.audioRecorder.tests;
 
 import com.simpleApplications.audioRecorder.daos.interfaces.IRecordingProjectDao;
+import com.simpleApplications.audioRecorder.model.RecordingProject;
 import com.simpleApplications.audioRecorder.verticles.HttpVertical;
 import io.vertx.core.DeploymentOptions;
 import io.vertx.core.Handler;
@@ -19,6 +20,8 @@ import org.junit.Before;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+
+import java.util.List;
 
 /**
  * @author Nico Moehring
@@ -213,8 +216,9 @@ public class RecordingProjectTest extends AbstractGuiceAwareTest implements Json
         this.dao.deleteAll();
 
         HttpClientRequest request1 = this.httpClient.put(8080, this.host, this.serverPath + "/Invalid");
+        String message = "{\"name\": \"Test1\"}";
 
-        this.sendJsonRequest(context, request1, "", httpClientResponse -> {
+        this.sendJsonRequest(context, request1, message, httpClientResponse -> {
             context.assertEquals(404, httpClientResponse.statusCode());
 
             async1.complete();
@@ -222,7 +226,7 @@ public class RecordingProjectTest extends AbstractGuiceAwareTest implements Json
 
         HttpClientRequest request2 = this.httpClient.put(8080, this.host, this.serverPath + "/1");
 
-        this.sendJsonRequest(context, request2, "", httpClientResponse -> {
+        this.sendJsonRequest(context, request2, message, httpClientResponse -> {
             context.assertEquals(404, httpClientResponse.statusCode());
 
             async2.complete();
@@ -292,6 +296,136 @@ public class RecordingProjectTest extends AbstractGuiceAwareTest implements Json
                     });
                 });
             });
+        });
+    }
+
+    @Test
+    public void testUpdateEmptyName(TestContext context) {
+        Async async = context.async();
+        this.dao.deleteAll();
+
+        String message1 = "{\"name\": \"Test1\"}";
+        HttpClientRequest request1 = this.httpClient.post(8080, this.host, this.serverPath);
+
+        this.sendJsonRequest(context, request1, message1, httpClientResponse1 -> {
+            context.assertEquals(200, httpClientResponse1.statusCode());
+
+            httpClientResponse1.bodyHandler(buffer1 -> {
+                JsonObject entity1 = new JsonObject(buffer1.getString(0, buffer1.length()));
+                int entityId = entity1.getInteger("id");
+                String message2 = "{\"name\": \"\"}";
+
+                HttpClientRequest request2 = this.httpClient.put(8080, this.host, this.serverPath + "/" + entityId);
+
+                this.sendJsonRequest(context, request2, message2, httpClientResponse2 -> {
+                    context.assertEquals(422, httpClientResponse2.statusCode());
+
+                    httpClientResponse2.bodyHandler(buffer2 -> {
+                        JsonObject root = new JsonObject(buffer2.getString(0, buffer2.length()));
+                        context.assertNotNull(root);
+
+                        JsonObject errorObject = root.getJsonObject("errors");
+                        context.assertNotNull(errorObject);
+                        context.assertEquals(1, errorObject.size());
+
+                        JsonArray errorArray = errorObject.getJsonArray("name");
+                        context.assertNotNull(errorArray);
+                        context.assertEquals(1, errorArray.size());
+                        context.assertEquals("may not be empty", errorArray.getString(0));
+
+                        async.complete();
+                    });
+                });
+            });
+        });
+    }
+
+    @Test
+    public void testUpdateLongName(TestContext context) {
+        Async async = context.async();
+        this.dao.deleteAll();
+
+        String message1 = "{\"name\": \"Test1\"}";
+        HttpClientRequest request1 = this.httpClient.post(8080, this.host, this.serverPath);
+
+        this.sendJsonRequest(context, request1, message1, httpClientResponse1 -> {
+            context.assertEquals(200, httpClientResponse1.statusCode());
+
+            httpClientResponse1.bodyHandler(buffer1 -> {
+                JsonObject entity1 = new JsonObject(buffer1.getString(0, buffer1.length()));
+                int entityId = entity1.getInteger("id");
+                String message2 = "{\"name\": \"lzcUomRUhfPrMo22CIet5MFhal4zF3HxKknEeyBcScmaZcnSPKY1JoELePSxwhFULRVTLvbPX3oSPiIye2WGqZ2WhJuoJEGDpCxjDWtHlE4fTjugwxTkfCn0m5r9a2mDjbXhC8Fu87WJRR7QgevlImBO3S3q4Apq6aOGp3DI28gVy8nxslrIHXDWDDblUUjKrWyu4MqVuRitamg4yl4w0TPKQ920fBjtUfsi1DGe8jC8Ks3GjcopGfFY9BqrFe8K\"}";
+
+                HttpClientRequest request2 = this.httpClient.put(8080, this.host, this.serverPath + "/" + entityId);
+
+                this.sendJsonRequest(context, request2, message2, httpClientResponse2 -> {
+                    context.assertEquals(422, httpClientResponse2.statusCode());
+
+                    httpClientResponse2.bodyHandler(buffer2 -> {
+                        JsonObject root = new JsonObject(buffer2.getString(0, buffer2.length()));
+                        context.assertNotNull(root);
+
+                        JsonObject errorObject = root.getJsonObject("errors");
+                        context.assertNotNull(errorObject);
+                        context.assertEquals(1, errorObject.size());
+
+                        JsonArray errorArray = errorObject.getJsonArray("name");
+                        context.assertNotNull(errorArray);
+                        context.assertEquals(1, errorArray.size());
+                        context.assertEquals("size must be between 0 and 255", errorArray.getString(0));
+
+                        async.complete();
+                    });
+                });
+            });
+        });
+    }
+
+    @Test
+    public void testDeleteInvalid(TestContext context) {
+        Async async1 = context.async();
+        Async async2 = context.async();
+        this.dao.deleteAll();
+
+        HttpClientRequest request1 = this.httpClient.delete(8080, this.host, this.serverPath + "/Test");
+
+        this.sendJsonRequest(context, request1, "", httpClientResponse1 -> {
+            context.assertEquals(404, httpClientResponse1.statusCode());
+            async1.complete();
+        });
+
+        HttpClientRequest request2 = this.httpClient.delete(8080, this.host, this.serverPath + "/1");
+
+        this.sendJsonRequest(context, request2, "", httpClientResponse2 -> {
+            context.assertEquals(404, httpClientResponse2.statusCode());
+            async2.complete();
+        });
+    }
+
+    @Test
+    public void testDeleteValid(TestContext context) {
+        Async async = context.async();
+        this.dao.deleteAll();
+
+        RecordingProject p1 = new RecordingProject();
+        p1.setName("Test1");
+
+        RecordingProject p2 = new RecordingProject();
+        p2.setName("Test2");
+
+        p1.setId(this.dao.create(p1));
+        p2.setId(this.dao.create(p2));
+
+        HttpClientRequest request = this.httpClient.delete(8080, this.host, this.serverPath + "/" + p1.getId());
+
+        this.sendJsonRequest(context, request, "", httpClientResponse -> {
+            context.assertEquals(200, httpClientResponse.statusCode());
+            List<RecordingProject> projectList = this.dao.getAll();
+
+            context.assertEquals(1, projectList.size());
+            context.assertEquals(p2.getId(), projectList.get(0).getId());
+
+            async.complete();
         });
     }
 }

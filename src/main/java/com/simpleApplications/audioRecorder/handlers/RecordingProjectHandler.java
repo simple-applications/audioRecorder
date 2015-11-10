@@ -3,8 +3,10 @@ package com.simpleApplications.audioRecorder.handlers;
 import com.google.inject.Inject;
 import com.simpleApplications.audioRecorder.daos.interfaces.IRecordingProjectDao;
 import com.simpleApplications.audioRecorder.exceptions.EntityNotFoundException;
+import com.simpleApplications.audioRecorder.exceptions.HttpException;
 import com.simpleApplications.audioRecorder.exceptions.NoDataGivenException;
 import com.simpleApplications.audioRecorder.exceptions.ValidationException;
+import com.simpleApplications.audioRecorder.model.Recording;
 import com.simpleApplications.audioRecorder.model.RecordingProject;
 import io.vertx.core.Future;
 import io.vertx.core.Handler;
@@ -39,24 +41,46 @@ public class RecordingProjectHandler extends AbstractRequestHandler<RecordingPro
         this.routes.add("/recordingProjects/:projectId");
     }
 
-    protected void deleteRecordingProject(RoutingContext routingContext) {
-
-    }
-
-    protected void saveRecordingProject(RoutingContext routingContext) throws NoDataGivenException, EntityNotFoundException {
+    protected void deleteRecordingProject(RoutingContext routingContext) throws HttpException {
         try {
             int projectId = Integer.valueOf(routingContext.request().getParam("projectId"));
+
+            Vertx.currentContext().executeBlocking((Future<Void> future) -> {
+                RecordingProject recordingProject = this.recordingProjectDao.getById(projectId);
+
+                if (recordingProject != null) {
+                    this.recordingProjectDao.delete(recordingProject);
+                    future.complete();
+                } else {
+                    future.fail(new EntityNotFoundException());
+                }
+            }, result -> {
+                if (result.succeeded()) {
+                    routingContext.response().end();
+                } else {
+                    this.handleHttpException(routingContext, (HttpException) result.cause());
+                }
+            });
+        } catch (NumberFormatException e) {
+            throw new EntityNotFoundException();
+        }
+    }
+
+    protected void saveRecordingProject(RoutingContext routingContext) throws HttpException {
+        try {
             RecordingProject requestData = this.getEntityFromRequest(routingContext);
+            int projectId = Integer.valueOf(routingContext.request().getParam("projectId"));
 
             this.handleObjectRequest(routingContext, (Future<RecordingProject> objectFuture) -> {
                 try {
                     RecordingProject recordingProject = this.recordingProjectDao.getById(projectId);
 
                     if (recordingProject == null) {
-                        throw new EntityNotFoundException("No recording project found with ID " + projectId);
+                        throw new EntityNotFoundException();
                     }
 
-                    recordingProject.bindJson(requestData.toJson());
+                    recordingProject.setName(requestData.getName());
+                    recordingProject.setReferenceFileId(requestData.getReferenceFileId());
                     this.validateEntity(recordingProject);
 
                     this.recordingProjectDao.update(recordingProject);
@@ -66,11 +90,11 @@ public class RecordingProjectHandler extends AbstractRequestHandler<RecordingPro
                 }
             });
         } catch (NumberFormatException e) {
-            throw new EntityNotFoundException("No recording project found with ID " + routingContext.request().getParam("projectId"));
+            throw new EntityNotFoundException();
         }
     }
 
-    protected void createRecordingProject(RoutingContext routingContext) throws NoDataGivenException {
+    protected void createRecordingProject(RoutingContext routingContext) throws HttpException {
         final RecordingProject recordingProject = this.getEntityFromRequest(routingContext);
 
         this.handleObjectRequest(routingContext, (Future<RecordingProject> objectFuture) -> {
@@ -85,18 +109,12 @@ public class RecordingProjectHandler extends AbstractRequestHandler<RecordingPro
         });
     }
 
-    protected void handleObjectRequest(RoutingContext routingContext, Handler<Future<RecordingProject>> handler) throws NoDataGivenException {
+    protected void handleObjectRequest(RoutingContext routingContext, Handler<Future<RecordingProject>> handler) {
         Vertx.currentContext().executeBlocking(handler, result -> {
             if (result.succeeded()) {
                 this.sendEntityResponse(routingContext, result.result());
             } else if (result.failed()) {
-                Throwable error = result.cause();
-
-                if (error instanceof ValidationException) {
-                    this.handleValidationErrors(routingContext, (ValidationException) result.cause());
-                } else if (error instanceof EntityNotFoundException) {
-                    this.handleEntityNotFoundException(routingContext);
-                }
+                this.handleHttpException(routingContext, (HttpException) result.cause());
             }
         });
     }

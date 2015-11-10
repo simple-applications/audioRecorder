@@ -18,6 +18,8 @@ import io.vertx.core.logging.LoggerFactory;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.InputStream;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Set;
 
@@ -29,6 +31,8 @@ public class Launcher implements ResourceReader {
     private static final String CONFIG_VERTICALS = "verticals";
 
     private static final String CONFIG_WORKER_VERTICALS = "workerVerticals";
+
+    private static final String CONFIG_PARAMETERS = "parameters";
 
     private Logger logger = LoggerFactory.getLogger(this.getClass());
 
@@ -48,11 +52,16 @@ public class Launcher implements ResourceReader {
             this.vertx = Vertx.vertx();
 
             final JsonObject config = this.getConfig();
-            this.injector = Guice.createInjector(new GuiceModule());
+
+            this.injector = Guice.createInjector(new GuiceModule(
+                    this.getConfigParameters(config)
+            ));
+
             this.injector.getInstance(IDatabaseUpdater.class).updateDatabaseStructure();
 
             this.startVerticals(config, Launcher.CONFIG_VERTICALS, false);
             this.startVerticals(config, Launcher.CONFIG_WORKER_VERTICALS, true);
+
         } catch (InitializeException e) {
             e.printStackTrace();
         }
@@ -101,5 +110,19 @@ public class Launcher implements ResourceReader {
         } catch (NullPointerException e) {
             throw new InitializeException("Config file could not be found!");
         }
+    }
+
+    private Map<String, String> getConfigParameters(JsonObject config) {
+        final Map<String, String> result = new HashMap<>();
+
+        JsonObject parameters = config.getJsonObject(Launcher.CONFIG_PARAMETERS);
+
+        if (parameters != null) {
+            parameters.fieldNames().forEach(fieldName -> {
+                result.put(fieldName, parameters.getString(fieldName));
+            });
+        }
+
+        return result;
     }
 }

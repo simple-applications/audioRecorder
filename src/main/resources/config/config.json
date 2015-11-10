@@ -5,5 +5,10 @@
   "workerVerticals": [
     "com.simpleApplications.audioRecorder.verticles.RecorderVertical",
     "com.simpleApplications.audioRecorder.verticles.SystemInformationVertical"
-  ]
+  ],
+  "parameters": {
+    "uncompressedRecordingsPath": "",
+    "compressedRecordingsPath": "",
+    "referenceFilesPath": ""
+  }
 }

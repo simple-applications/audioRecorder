@@ -18,6 +18,10 @@ public interface IRecordingDao {
     @Mapper(RecordingMapper.class)
     List<Recording> getByProjectId(@Bind("projectId") int projectId);
 
+    @SqlQuery("SELECT * FROM recordings WHERE id = :id")
+    @Mapper(RecordingMapper.class)
+    Recording getById(@Bind("id") int id);
+
     @SqlUpdate("INSERT INTO recordings(createdAt, fileName, length, size, converted, projectId) VALUES (:createdAt, :fileName, :length, :size, :converted, :projectId)")
     int create(@BindBean Recording recording);
 

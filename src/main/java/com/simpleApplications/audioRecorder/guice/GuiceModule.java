@@ -2,6 +2,7 @@ package com.simpleApplications.audioRecorder.guice;
 
 import com.google.inject.AbstractModule;
 import com.google.inject.multibindings.Multibinder;
+import com.google.inject.name.Names;
 import com.mchange.v2.c3p0.ComboPooledDataSource;
 import com.simpleApplications.audioRecorder.actions.DatabaseActionFactory;
 import com.simpleApplications.audioRecorder.actions.interfaces.IActionFactory;
@@ -14,6 +15,8 @@ import com.simpleApplications.audioRecorder.handlers.RecordingHandler;
 import com.simpleApplications.audioRecorder.handlers.RecordingProjectHandler;
 import com.simpleApplications.audioRecorder.handlers.StaticHandler;
 import com.simpleApplications.audioRecorder.handlers.interfaces.IRequestHandler;
+import com.simpleApplications.audioRecorder.helper.FileHelper;
+import com.simpleApplications.audioRecorder.helper.interfaces.IFileHelper;
 import org.skife.jdbi.v2.DBI;
 import ru.vyarus.guice.validator.ValidationModule;
 
@@ -21,18 +24,27 @@ import javax.validation.Validation;
 import javax.validation.Validator;
 import java.beans.PropertyVetoException;
 import java.sql.SQLException;
+import java.util.Map;
 
 /**
  * @author Nico Moehring
  */
 public class GuiceModule extends AbstractModule {
+
+    protected Map<String, String> configuration;
+
+    public GuiceModule(Map<String, String> configuration) {
+        this.configuration = configuration;
+    }
+
     @Override
     protected void configure() {
         try {
-            final DatabaseActionFactory actionFactory = new DatabaseActionFactory();
+            Names.bindProperties(binder(), this.configuration);
+            this.bind(IFileHelper.class).to(FileHelper.class);
+
             final DBI dbi = this.getDataSource();
 
-            this.bind(IActionFactory.class).toInstance(actionFactory);
             this.bind(DBI.class).toInstance(dbi);
             this.bind(IDatabaseUpdater.class).to(DatabaseUpdater.class);
             this.bind(IRecordingDao.class).toInstance(dbi.onDemand(IRecordingDao.class));

@@ -3,5 +3,8 @@ package com.simpleApplications.audioRecorder.exceptions;
 /**
  * @author Nico Moehring
  */
-public class NoDataGivenException extends Exception {
+public class NoDataGivenException extends HttpException {
+    public NoDataGivenException() {
+        super(400);
+    }
 }
